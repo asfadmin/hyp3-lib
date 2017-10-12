@@ -1,0 +1,5 @@
+software/*
+!software/README.txt
+configs/*
+!configs/README.txt
+*.old
