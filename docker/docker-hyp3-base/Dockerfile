@@ -1,16 +1,9 @@
 FROM ubuntu:16.04
 
-ENV ISCE_VERSION=isce-20160906 \
-    ISCE_HOME=/usr/local/isce \
-    PATH=${PATH}:${ISCE_HOME}/bin:${ISCE_HOME}/applications \
-    PYTHONPATH=${PYTHONPATH}:/usr/local \
-    GAMMA_VERSION=gamma_software_20161207 \
-    MAPREADY_VERSION=ASF_MapReady
+ENV MAPREADY_VERSION=ASF_MapReady
 
 LABEL maintainer="Alaska Satellite Facility" \
     ubuntu_version=16.04 \
-    isce_version=${ISCE_VERSION} \
-    gamma_version=${GAMMA_VERSION} \
     mapready_version=${MAPREADY_VERSION}
 
 RUN apt-get update
@@ -82,11 +75,3 @@ RUN mkdir -p /data/hyp3-workdir/attachments
 # MapReady
 ADD ./software/${MAPREADY_VERSION}.tar.gz /tmp
 RUN cd /tmp/${MAPREADY_VERSION} && make install
-
-# ISCE
-ADD ./software/${ISCE_VERSION}.tar.bz2 /usr/local/isce
-
-# GAMMA
-ADD ./software/${GAMMA_VERSION}.tar.gz /usr/local
-
-
