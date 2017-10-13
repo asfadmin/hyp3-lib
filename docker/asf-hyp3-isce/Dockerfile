@@ -1,4 +1,4 @@
-FROM docker-hyp3-base:latest
+FROM asf-hyp3-base:latest
 
 ENV ISCE_VERSION=isce-20160906 \
     ISCE_HOME=/usr/local/isce \
@@ -9,4 +9,5 @@ LABEL maintainer="Alaska Satellite Facility" \
     isce_version=${ISCE_VERSION}
 
 # ISCE
-ADD ./software/${ISCE_VERSION}.tar.bz2 /usr/local/isce
+ADD ./lib/${ISCE_VERSION}.tar.bz2 /usr/local
+RUN mv /usr/local/${ISCE_VERSION} /usr/local/isce

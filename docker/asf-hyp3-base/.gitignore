@@ -1,5 +1,5 @@
-software/*
-!software/README.txt
+lib/*
+!lib/README.txt
 configs/*
 !configs/README.txt
 *.old

@@ -6,14 +6,15 @@ LABEL maintainer="Alaska Satellite Facility" \
     ubuntu_version=16.04 \
     mapready_version=${MAPREADY_VERSION}
 
-RUN apt-get update
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository -y ppa:ubuntugis/ppa && apt-get install -y software-properties-common
-
-RUN apt-get install -y \ 
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository -y ppa:ubuntugis/ppa && \
+    apt-get install -y \
     awscli \
+    curl \
     gdal-bin \
     git \
+    imagemagick \
     libgeotiff-dev \
     libfftw3-bin \
     libfftw3-dev \
@@ -27,13 +28,20 @@ RUN apt-get install -y \
     python-lxml \
     python-numpy \
     python-psycopg2 \
+    python-pip \
     python-requests \
     python-scipy \
+    python3 \
+    python3-pip \
+    python3-gdal \
     tcsh \
+    tree \
     unzip \
     wget \
     xsltproc \
-    zip
+    zip && \
+    pip install --upgrade pip && \
+    pip3 install --upgrade pip
 
 RUN mkdir -p /root/.ssh
 ADD ./configs/id_rsa_docker /root/.ssh/id_rsa
@@ -60,18 +68,19 @@ RUN git clone git@github.com:asfadmin/hyp3-insar-gamma.git
 RUN git clone git@github.com:asfadmin/hyp3-lib.git
 RUN git clone git@github.com:asfadmin/hyp3-change-detection-sacd.git
 
-RUN mkdir cloud-proj/processing/config/ cloud-proj/processing/log cloud-proj/processing/lock
+RUN mkdir ./cloud-proj/processing/config/ ./cloud-proj/processing/log ./cloud-proj/processing/lock
 
 # Config stuff starts here
-COPY ./configs/get_dem.pl.cfg gap_rtc/config/get_dem.pl.cfg
-COPY ./configs/sentinel_xml.xsl local/gap_rtc/etc/sentinel_xml.xsl
+COPY ./configs/get_dem.pl.cfg ./gap_rtc/config/get_dem.pl.cfg
+COPY ./configs/sentinel_xml.xsl ./gap_rtc/etc/sentinel_xml.xsl
 
-RUN mkdir asf_api_assistant/config/
-COPY ./configs/get_asf.cfg asf_api_assistant/config/get_asf.cfg
+RUN mkdir ./asf_api_assistant/config/
+COPY ./configs/get_asf.cfg ./asf_api_assistant/config/get_asf.cfg
 
 WORKDIR /
 RUN mkdir -p /data/hyp3-workdir/attachments
 
 # MapReady
-ADD ./software/${MAPREADY_VERSION}.tar.gz /tmp
+ADD ./lib/${MAPREADY_VERSION}.tar.gz /tmp
 RUN cd /tmp/${MAPREADY_VERSION} && make install
+RUN rm -rf /tmp
