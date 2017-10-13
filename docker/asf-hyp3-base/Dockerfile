@@ -8,8 +8,9 @@ LABEL maintainer="Alaska Satellite Facility" \
 
 RUN apt-get update && \
     apt-get install -y software-properties-common && \
-    add-apt-repository -y ppa:ubuntugis/ppa && \
-    apt-get install -y \
+    add-apt-repository -y ppa:ubuntugis/ppa
+
+RUN apt-get install -y \
     awscli \
     curl \
     gdal-bin \
@@ -40,8 +41,7 @@ RUN apt-get update && \
     wget \
     xsltproc \
     zip && \
-    pip install --upgrade pip && \
-    pip3 install --upgrade pip
+    pip install --upgrade pip
 
 RUN mkdir -p /root/.ssh
 ADD ./configs/id_rsa_docker /root/.ssh/id_rsa
