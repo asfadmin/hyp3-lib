@@ -1,8 +1,8 @@
 FROM asf-hyp3-base:latest
 
 ENV ISCE_VERSION=isce-20160906 \
-    ISCE_HOME=/usr/local/isce \
-    PATH=${PATH}:${ISCE_HOME}/bin:${ISCE_HOME}/applications \
+    ISCE_HOME=/usr/local/isce
+ENV PATH=$PATH:${ISCE_HOME}/bin:${ISCE_HOME}/applications \
     PYTHONPATH=${PYTHONPATH}:/usr/local
 
 LABEL maintainer="Alaska Satellite Facility" \

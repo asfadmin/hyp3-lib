@@ -10,7 +10,8 @@ RUN apt-get update && \
     apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:ubuntugis/ppa
 
-RUN apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y \
     awscli \
     curl \
     gdal-bin \
@@ -21,7 +22,9 @@ RUN apt-get install -y \
     libfftw3-dev \
     libgdal-dev \
     libgsl-dev \
+    libmotif-dev \
     libshp-dev \
+    libx11-dev \
     openssh-client \
     python \
     python-boto3 \
@@ -41,6 +44,7 @@ RUN apt-get install -y \
     wget \
     xsltproc \
     zip && \
+    apt-get update && \
     pip install --upgrade pip
 
 RUN mkdir -p /root/.ssh
