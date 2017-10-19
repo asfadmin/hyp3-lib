@@ -1,0 +1,96 @@
+FROM ubuntu:16.04
+
+ENV MAPREADY_VERSION=ASF_MapReady
+ENV AWS_CFG_PROFILE=hyp3-full-access
+
+LABEL maintainer="Alaska Satellite Facility" \
+    ubuntu_version=16.04 \
+    mapready_version=${MAPREADY_VERSION}
+
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository -y ppa:ubuntugis/ppa
+
+RUN apt-get update && \
+    apt-get install -y \
+    awscli \
+    curl \
+    gdal-bin \
+    git \
+    groff \
+    imagemagick \
+    libgeotiff-dev \
+    libfftw3-bin \
+    libfftw3-dev \
+    libgdal-dev \
+    libgsl-dev \
+    libmotif-dev \
+    libshp-dev \
+    libx11-dev \
+    openssh-client \
+    python \
+    python-boto3 \
+    python-gdal \
+    python-lxml \
+    python-numpy \
+    python-psycopg2 \
+    python-pip \
+    python-requests \
+    python-scipy \
+    python3 \
+    python3-pip \
+    python3-gdal \
+    tcsh \
+    tree \
+    unzip \
+    wget \
+    xsltproc \
+    zip && \
+    apt-get update && \
+    pip install --upgrade pip
+
+RUN touch `echo random.$RANDOM`.txt
+COPY aws_configure.txt /root/aws_configure.txt
+RUN aws configure --profile=$AWS_CFG_PROFILE < /root/aws_configure.txt
+RUN rm random.*.txt
+
+RUN mkdir -p /root/.ssh
+RUN aws s3 cp s3://hyp3-docker/configs/id_rsa_docker /root/.ssh/id_rsa  --profile=$AWS_CFG_PROFILE
+RUN chmod 700 /root/.ssh/id_rsa
+RUN echo "Host github.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
+
+RUN aws s3 cp s3://hyp3-docker/configs/dot.bash_path /root/bash_path --profile=$AWS_CFG_PROFILE
+RUN aws s3 cp s3://hyp3-docker/configs/dot.netrc /root/.netrc --profile=$AWS_CFG_PROFILE
+
+RUN mkdir -p /data/hyp3-workdir/attachments
+
+# MapReady. Install pre-compiled into /usr/local/bin/ and /usr/local/lib/
+RUN aws s3 cp s3://hyp3-docker/software/${MAPREADY_VERSION}.tar.gz /tmp/ --profile=$AWS_CFG_PROFILE
+RUN cd /tmp && tar xzvf "${MAPREADY_VERSION}.tar.gz" && cd /tmp/${MAPREADY_VERSION} && make install && rm -rf /tmp
+
+WORKDIR /usr/local
+
+RUN git clone -b devel --single-branch git@github.com:asfadmin/python_data_utils.git
+RUN git clone -b devel --single-branch git@github.com:asfadmin/python-asf.git
+RUN git clone -b test --single-branch git@github.com:asfadmin/change_detection.git
+RUN git clone -b test --single-branch git@github.com:asfadmin/apd_insar.git
+RUN git clone -b test --single-branch git@github.com:asfadmin/hyp3-rtc-gamma.git
+RUN git clone -b test --single-branch git@github.com:asfadmin/hyp3-insar-gamma.git
+RUN git clone -b test --single-branch git@github.com:asfadmin/hyp3-lib.git
+RUN git clone -b test --single-branch git@github.com:asfadmin/hyp3-change-detection-sacd.git
+
+RUN git clone -b proc-test --single-branch git@github.com:asfadmin/cloud-proj.git
+RUN mkdir ./cloud-proj/processing/config/ ./cloud-proj/processing/log ./cloud-proj/processing/lock
+RUN aws s3 cp s3://hyp3-docker/configs/proc.test.cfg ./cloud-proj/processing/config/proc.cfg --profile=$AWS_CFG_PROFILE
+
+RUN git clone -b devel --single-branch git@github.com:asfadmin/gap_rtc.git
+RUN aws s3 cp s3://hyp3-docker/configs/get_dem.pl.cfg ./gap_rtc/config/get_dem.pl.cfg --profile=$AWS_CFG_PROFILE
+RUN aws s3 cp s3://hyp3-docker/configs/sentinel_xml.xsl ./gap_rtc/etc/sentinel_xml.xsl --profile=$AWS_CFG_PROFILE
+
+RUN git clone -b test --single-branch git@github.com:asfadmin/asf_api_assistant.git
+RUN mkdir ./asf_api_assistant/config/
+RUN aws s3 cp s3://hyp3-docker/configs/get_asf.cfg ./asf_api_assistant/config/get_asf.cfg --profile=$AWS_CFG_PROFILE
+
+RUN /bin/bash -c "source /root/.bashrc && source /root/bash_path"
+
+WORKDIR /

@@ -1,5 +1,2 @@
-lib/*
-!lib/README.txt
-configs/*
-!configs/README.txt
 *.old
+aws_configure.txt

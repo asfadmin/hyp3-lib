@@ -1,0 +1,11 @@
+FROM asf-hyp3-base:prod
+
+ENV GAMMA_VERSION=gamma_software_20161207
+ENV AWS_CFG_PROFILE=hyp3-full-access
+
+LABEL maintainer="Alaska Satellite Facility" \
+    gamma_version=${GAMMA_VERSION}
+
+# GAMMA
+RUN aws s3 cp s3://hyp3-docker/software/${GAMMA_VERSION}.tar.gz /tmp/ --profile=$AWS_CFG_PROFILE
+RUN cd /tmp && tar xzvf "${GAMMA_VERSION}.tar.gz" && mv /tmp/${GAMMA_VERSION} /usr/local/gamma && rm -r /tmp

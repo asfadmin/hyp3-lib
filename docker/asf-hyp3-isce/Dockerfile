@@ -1,4 +1,4 @@
-FROM asf-hyp3-base:latest
+FROM asf-hyp3-base:test
 
 ENV ISCE_VERSION=isce-20160906 \
     ISCE_HOME=/usr/local/isce
