@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-aws s3 cp s3://hyp3-config/awslogs.test.conf /tmp/awslogs.conf
+aws s3 cp s3://hyp3-config/awslogs.prod.conf /tmp/awslogs.conf
 curl https://s3.amazonaws.com//aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
 python awslogs-agent-setup.py --region us-east-1 --non-interactive --configfile /tmp/awslogs.conf
 

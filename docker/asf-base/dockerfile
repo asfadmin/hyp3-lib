@@ -1,0 +1,57 @@
+FROM ubuntu:16.04
+
+# The following is expected in the context:
+# ./etc/${MAPREADY_VERSION}.tar.gz
+
+ENV MAPREADY_VERSION=ASF_MapReady
+
+LABEL maintainer="Alaska Satellite Facility" \
+    ubuntu_version=16.04 \
+    mapready_version=${MAPREADY_VERSION}
+
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository -y ppa:ubuntugis/ppa
+
+RUN apt-get update && \
+    apt-get install -y \
+    awscli \
+    curl \
+    gdal-bin \
+    git \
+    groff \
+    imagemagick \
+    libgeotiff-dev \
+    libfftw3-bin \
+    libfftw3-dev \
+    libgdal-dev \
+    libgsl-dev \
+    libmotif-dev \
+    libshp-dev \
+    libx11-dev \
+    openssh-client \
+    python \
+    python-boto3 \
+    python-gdal \
+    python-lxml \
+    python-matplotlib \
+    python-numpy \
+    python-psycopg2 \
+    python-pip \
+    python-requests \
+    python-scipy \
+    python3 \
+    python3-pip \
+    python3-gdal \
+    tcsh \
+    tree \
+    unzip \
+    wget \
+    xsltproc \
+    zip && \
+    apt-get update && \
+    pip install --upgrade pip
+
+# MapReady. Install pre-compiled into /usr/local/bin/ and /usr/local/lib/
+COPY ./etc/${MAPREADY_VERSION}.tar.gz /tmp/
+RUN cd /tmp && tar xzvf "${MAPREADY_VERSION}.tar.gz" && cd /tmp/${MAPREADY_VERSION} && make install && rm -rf /tmp/${MAPREADY_VERSION}*

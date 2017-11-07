@@ -1,0 +1,12 @@
+FROM asf-base:latest
+
+# The following are expected in the context
+# ./etc/${GAMMA_VERSION}.tar.gz
+
+ENV GAMMA_VERSION=gamma_software_20161207
+
+LABEL gamma_version=${GAMMA_VERSION}
+
+# INSTALL GAMMA here
+COPY ./etc/${GAMMA_VERSION}.tar.gz /tmp/
+RUN cd /tmp && tar xzvf "${GAMMA_VERSION}.tar.gz" && mv /tmp/${GAMMA_VERSION} /usr/local/gamma && rm -r /tmp/${GAMMA_VERSION}*
