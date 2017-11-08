@@ -12,7 +12,7 @@ FROM asf-gamma:latest
 COPY ./etc/dot.bash_path /root/bash_path
 COPY ./etc/dot.netrc /root/.netrc
 
-RUN mkdir -p /data/hyp3-workdir/attachments
+RUN mkdir -p /data/hyp3_workdir/attachments
 
 RUN mkdir -p /root/.ssh
 COPY ./etc/id_rsa_docker /root/.ssh/id_rsa
@@ -44,6 +44,6 @@ COPY ./etc/get_asf.cfg ./asf_api_assistant/config/get_asf.cfg
 
 WORKDIR /
 
-ENV PYTHONPATH=${PYTHONPATH}:/usr/local/python_data_utils/src/:/usr/local/python-asf/:/usr/local/hyp3-lib/src/
+ENV PYTHONPATH=${PYTHONPATH}:/usr/local/python_data_utils/src/:/usr/local/python-asf/:/usr/local/hyp3-lib/src/:/usr/local/asf_api_assistant/src/
 
 RUN /bin/bash -c "source /root/.bashrc && source /root/bash_path"
