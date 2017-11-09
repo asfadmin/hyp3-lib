@@ -2,17 +2,15 @@ FROM asf-gamma:latest
 
 # The following is expected in the context:
 # ./etc/id_rsa_docker
-# ./etc/dot.bash_path
 # ./etc/dot.netrc
 # ./etc/proc.prod.cfg
 # ./etc/get_dem.pl.cfg
 # ./etc/sentinel_xml.xsl
 # ./etc/get_asf.cfg
 
-COPY ./etc/dot.bash_path /root/bash_path
 COPY ./etc/dot.netrc /root/.netrc
 
-RUN mkdir -p /data/hyp3-workdir/attachments
+RUN mkdir -p /data/hyp3_workdir/attachments
 
 RUN mkdir -p /root/.ssh
 COPY ./etc/id_rsa_docker /root/.ssh/id_rsa
@@ -44,6 +42,7 @@ COPY ./etc/get_asf.cfg ./asf_api_assistant/config/get_asf.cfg
 
 WORKDIR /
 
-ENV PYTHONPATH=${PYTHONPATH}:/usr/local/python_data_utils/src/:/usr/local/python-asf/:/usr/local/hyp3-lib/src/
+ENV PATH=/usr/local/gap_rtc/src:/usr/local/asf_api_assistant/src:/usr/local/python_data_utils/src:${PATH}
+ENV PATH=/usr/local/change_detection/src:/usr/local/apd_insar/src:/usr/local/hyp3-rtc-gamma/src:/usr/local/hyp3-change-detection-sacd/src:${PATH}
 
-RUN /bin/bash -c "source /root/.bashrc && source /root/bash_path"
+ENV PYTHONPATH=${PYTHONPATH}:/usr/local/python-asf:/usr/local/python_data_utils/src:/usr/local/gap_rtc/src:/usr/local/hyp3-rtc-gamma/src:/usr/local/hyp3-lib/src

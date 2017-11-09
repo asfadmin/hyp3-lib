@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 # The following is expected in the context:
 # ./etc/${MAPREADY_VERSION}.tar.gz
 
-ENV MAPREADY_VERSION=ASF_MapReady
+ENV MAPREADY_VERSION=ASF_MapReady FFTW_LIB_DIR=/usr/lib/x86_64-linux-gnu FFTW_INC_DIR=/usr/include
 
 LABEL maintainer="Alaska Satellite Facility" \
     ubuntu_version=16.04 \
