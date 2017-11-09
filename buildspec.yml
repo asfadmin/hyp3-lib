@@ -16,31 +16,37 @@ phases:
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION)
       - aws codepipeline get-pipeline-state --name $PIPELINE_NAME --query 'stageStates[*].actionStates[?actionName==`Source`].currentRevision.revisionId' --output text | cut -c1-7 > sha1.txt
 
-      - aws s3 cp s3://${SOFTWARE_BUCKET}/ASF_MapReady.tar.gz ./docker/$IMAGE_1/etc/
+      - aws s3 cp s3://$SOFTWARE_BUCKET/ASF_MapReady.tar.gz ./docker/$IMAGE_1/etc/
 
-      - aws s3 cp s3://${SOFTWARE_BUCKET}/gamma_software_20161207.tar.gz ./docker/$IMAGE_2/etc/
+      - aws s3 cp s3://$SOFTWARE_BUCKET/gamma_software_20161207.tar.gz ./docker/$IMAGE_2/etc/
 
-      - aws s3 cp s3://${CONFIGS_BUCKET}/id_rsa_docker ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://${CONFIGS_BUCKET}/dot.netrc ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://${CONFIGS_BUCKET}/proc.test.cfg ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://${CONFIGS_BUCKET}/get_dem.pl.cfg ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://${CONFIGS_BUCKET}/sentinel_xml.xsl ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://${CONFIGS_BUCKET}/get_asf.cfg ./docker/$IMAGE_3/etc/
+      - aws s3 cp s3://$CONFIGS_BUCKET/id_rsa_docker ./docker/$IMAGE_3/etc/
+      - aws s3 cp s3://$CONFIGS_BUCKET/dot.netrc ./docker/$IMAGE_3/etc/
+      - aws s3 cp s3://$CONFIGS_BUCKET/proc.test.cfg ./docker/$IMAGE_3/etc/
+      - aws s3 cp s3://$CONFIGS_BUCKET/get_dem.pl.cfg ./docker/$IMAGE_3/etc/
+      - aws s3 cp s3://$CONFIGS_BUCKET/sentinel_xml.xsl ./docker/$IMAGE_3/etc/
+      - aws s3 cp s3://$CONFIGS_BUCKET/get_asf.cfg ./docker/$IMAGE_3/etc/
   build:
     commands:
-      - docker build -t $IMAGE_1:test -f ./docker/$IMAGE_1/dockerfile ./docker/$IMAGE_1/
-      - docker tag $IMAGE_1:test $IMAGE_HOST/$IMAGE_1:$(cat sha1.txt)
+      - docker build -t $IMAGE_1:latest -f ./docker/$IMAGE_1/dockerfile ./docker/$IMAGE_1/
+      - docker tag $IMAGE_1:latest $IMAGE_HOST/$IMAGE_1:test
+      - docker tag $IMAGE_1:latest $IMAGE_HOST/$IMAGE_1:$(cat sha1.txt)
 
-      - docker build -t $IMAGE_2:test -f ./docker/$IMAGE_2/dockerfile ./docker/$IMAGE_2/
-      - docker tag $IMAGE_2:test $IMAGE_HOST/$IMAGE_2:$(cat sha1.txt)
+      - docker build -t $IMAGE_2:latest -f ./docker/$IMAGE_2/dockerfile ./docker/$IMAGE_2/
+      - docker tag $IMAGE_2:latest $IMAGE_HOST/$IMAGE_2:test
+      - docker tag $IMAGE_2:latest $IMAGE_HOST/$IMAGE_2:$(cat sha1.txt)
 
-      - docker build -t $IMAGE_3:test -f ./docker/$IMAGE_3/dockerfile.test ./docker/$IMAGE_3/
-      - docker tag $IMAGE_3:test $IMAGE_HOST/$IMAGE_3:$(cat sha1.txt)
+      - docker build -t $IMAGE_3:latest -f ./docker/$IMAGE_3/dockerfile.test ./docker/$IMAGE_3/
+      - docker tag $IMAGE_3:latest $IMAGE_HOST/$IMAGE_3:test
+      - docker tag $IMAGE_3:latest $IMAGE_HOST/$IMAGE_3:$(cat sha1.txt)
   post_build:
     commands:
+      - docker push $IMAGE_HOST/$IMAGE_1:latest
       - docker push $IMAGE_HOST/$IMAGE_1:test
       - docker push $IMAGE_HOST/$IMAGE_1:$(cat sha1.txt)
+      - docker push $IMAGE_HOST/$IMAGE_2:latest
       - docker push $IMAGE_HOST/$IMAGE_2:test
       - docker push $IMAGE_HOST/$IMAGE_2:$(cat sha1.txt)
+      - docker push $IMAGE_HOST/$IMAGE_3:latest
       - docker push $IMAGE_HOST/$IMAGE_3:test
       - docker push $IMAGE_HOST/$IMAGE_3:$(cat sha1.txt)
