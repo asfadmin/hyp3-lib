@@ -1,0 +1,15 @@
+FROM asf-base:prod
+
+# The following are expected in the context
+# ./etc/${ISCE_VERSION}.tar.bz2
+
+ENV ISCE_VERSION=isce-20160906 \
+    ISCE_HOME=/usr/local/isce \
+    PATH=${PATH}:${ISCE_HOME}/bin:${ISCE_HOME}/applications \
+    PYTHONPATH=${PYTHONPATH}:/usr/local
+
+LABEL isce_version=${ISCE_VERSION}
+
+# ISCE
+COPY ./etc/${ISCE_VERSION}.tar.bz2 /tmp/
+RUN cd /tmp && tar xvjf "${ISCE_VERSION}.tar.bz2" && mv /tmp/${ISCE_VERSION} /usr/local/isce && rm -r /tmp/${ISCE_VERSION}*

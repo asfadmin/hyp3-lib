@@ -1,4 +1,4 @@
-FROM asf-base:latest
+FROM asf-base:test
 
 # The following are expected in the context
 # ./etc/${ISCE_VERSION}.tar.bz2

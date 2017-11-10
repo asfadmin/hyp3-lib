@@ -1,4 +1,4 @@
-FROM asf-base:latest
+FROM asf-base:prod
 
 # The following are expected in the context
 # ./etc/${GAMMA_VERSION}.tar.gz

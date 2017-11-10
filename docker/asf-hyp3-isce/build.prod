@@ -19,4 +19,5 @@ aws s3 sync --exclude "*" --include "sentinel_xml.xsl" s3://hyp3-docker/configs/
 aws s3 sync --exclude "*" --include "get_asf.cfg" s3://hyp3-docker/configs/ ./etc/
 
 echo "Building image..."
-docker build -t asf-hyp3-isce:prod -f dockerfile.prod .
+docker build -t asf-hyp3-isce:latest -f dockerfile.prod .
+docker tag asf-hyp3-isce:latest asf-hyp3-isce:prod

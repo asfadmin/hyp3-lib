@@ -1,4 +1,4 @@
-FROM asf-gamma:latest
+FROM asf-gamma:prod
 
 # The following is expected in the context:
 # ./etc/id_rsa_docker
