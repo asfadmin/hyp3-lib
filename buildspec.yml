@@ -9,6 +9,7 @@ environment_variables:
     IMAGE_3: "asf-hyp3-gamma"
     CONFIGS_BUCKET: "hyp3-docker/configs"
     SOFTWARE_BUCKET: "hyp3-docker/software"
+    MATURITY: "test"
 
 phases:
   pre_build:
@@ -30,26 +31,26 @@ phases:
     commands:
       - docker build -t $IMAGE_1:latest -f ./docker/$IMAGE_1/dockerfile ./docker/$IMAGE_1/
       - docker tag $IMAGE_1:latest $IMAGE_HOST/$IMAGE_1:latest
-      - docker tag $IMAGE_1:latest $IMAGE_HOST/$IMAGE_1:test
+      - docker tag $IMAGE_1:latest $IMAGE_HOST/$IMAGE_1:$MATURITY
       - docker tag $IMAGE_1:latest $IMAGE_HOST/$IMAGE_1:$(cat sha1.txt)
 
-      - docker build -t $IMAGE_2:latest -f ./docker/$IMAGE_2/dockerfile ./docker/$IMAGE_2/
+      - docker build -t $IMAGE_2:latest -f ./docker/$IMAGE_2/dockerfile.$MATURITY ./docker/$IMAGE_2/
       - docker tag $IMAGE_2:latest $IMAGE_HOST/$IMAGE_2:latest
-      - docker tag $IMAGE_2:latest $IMAGE_HOST/$IMAGE_2:test
+      - docker tag $IMAGE_2:latest $IMAGE_HOST/$IMAGE_2:$MATURITY
       - docker tag $IMAGE_2:latest $IMAGE_HOST/$IMAGE_2:$(cat sha1.txt)
 
-      - docker build -t $IMAGE_3:latest -f ./docker/$IMAGE_3/dockerfile.test ./docker/$IMAGE_3/
+      - docker build -t $IMAGE_3:latest -f ./docker/$IMAGE_3/dockerfile.$MATURITY ./docker/$IMAGE_3/
       - docker tag $IMAGE_3:latest $IMAGE_HOST/$IMAGE_3:latest
-      - docker tag $IMAGE_3:latest $IMAGE_HOST/$IMAGE_3:test
+      - docker tag $IMAGE_3:latest $IMAGE_HOST/$IMAGE_3:$MATURITY
       - docker tag $IMAGE_3:latest $IMAGE_HOST/$IMAGE_3:$(cat sha1.txt)
   post_build:
     commands:
       - docker push $IMAGE_HOST/$IMAGE_1:latest
-      - docker push $IMAGE_HOST/$IMAGE_1:test
+      - docker push $IMAGE_HOST/$IMAGE_1:$MATURITY
       - docker push $IMAGE_HOST/$IMAGE_1:$(cat sha1.txt)
       - docker push $IMAGE_HOST/$IMAGE_2:latest
-      - docker push $IMAGE_HOST/$IMAGE_2:test
+      - docker push $IMAGE_HOST/$IMAGE_2:$MATURITY
       - docker push $IMAGE_HOST/$IMAGE_2:$(cat sha1.txt)
       - docker push $IMAGE_HOST/$IMAGE_3:latest
-      - docker push $IMAGE_HOST/$IMAGE_3:test
+      - docker push $IMAGE_HOST/$IMAGE_3:$MATURITY
       - docker push $IMAGE_HOST/$IMAGE_3:$(cat sha1.txt)
