@@ -2,11 +2,10 @@ version: 0.1
 
 environment_variables:
   plaintext:
-    PIPELINE_NAME: "asf-hyp3-gamma"
+    PIPELINE_NAME: "asf-base"
     IMAGE_HOST: "626226570674.dkr.ecr.us-east-1.amazonaws.com"
     IMAGE_1: "asf-base"
     IMAGE_2: "asf-gamma"
-    IMAGE_3: "asf-hyp3-gamma"
     CONFIGS_BUCKET: "hyp3-docker/configs"
     SOFTWARE_BUCKET: "hyp3-docker/software"
     MATURITY: "test"
@@ -20,18 +19,10 @@ phases:
       - aws s3 cp s3://$SOFTWARE_BUCKET/ASF_MapReady.tar.gz ./docker/$IMAGE_1/etc/
 
       - aws s3 cp s3://$SOFTWARE_BUCKET/gamma_software_20161207.tar.gz ./docker/$IMAGE_2/etc/
-
-      - aws s3 cp s3://$CONFIGS_BUCKET/id_rsa_docker ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://$CONFIGS_BUCKET/dot.netrc ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://$CONFIGS_BUCKET/proc.test.cfg ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://$CONFIGS_BUCKET/get_dem.pl.cfg ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://$CONFIGS_BUCKET/sentinel_xml.xsl ./docker/$IMAGE_3/etc/
-      - aws s3 cp s3://$CONFIGS_BUCKET/get_asf.cfg ./docker/$IMAGE_3/etc/
   build:
     commands:
       - docker build -t $IMAGE_1:$MATURITY -f ./docker/$IMAGE_1/dockerfile ./docker/$IMAGE_1/
       - docker build -t $IMAGE_2:$MATURITY -f ./docker/$IMAGE_2/dockerfile.$MATURITY ./docker/$IMAGE_2/
-      - docker build -t $IMAGE_3:$MATURITY -f ./docker/$IMAGE_3/dockerfile.$MATURITY ./docker/$IMAGE_3/
   post_build:
     commands:
       - docker tag $IMAGE_1:$MATURITY $IMAGE_HOST/$IMAGE_1:latest
@@ -47,10 +38,3 @@ phases:
       - docker push $IMAGE_HOST/$IMAGE_2:$MATURITY
       - docker tag $IMAGE_2:$MATURITY $IMAGE_HOST/$IMAGE_2:$(cat sha1.txt)
       - docker push $IMAGE_HOST/$IMAGE_2:$(cat sha1.txt)
-
-      - docker tag $IMAGE_3:$MATURITY $IMAGE_HOST/$IMAGE_3:latest
-      - docker push $IMAGE_HOST/$IMAGE_3:latest
-      - docker tag $IMAGE_3:$MATURITY $IMAGE_HOST/$IMAGE_3:$MATURITY
-      - docker push $IMAGE_HOST/$IMAGE_3:$MATURITY
-      - docker tag $IMAGE_3:$MATURITY $IMAGE_HOST/$IMAGE_3:$(cat sha1.txt)
-      - docker push $IMAGE_HOST/$IMAGE_3:$(cat sha1.txt)
