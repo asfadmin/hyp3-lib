@@ -96,7 +96,7 @@ def resample_geotiff(geotiff, width, outFormat, outFile, use_nn = False):
       else:
         rgbExt = ('_rgb{0}.tif'.format(os.getpid()))
         rgbFile = outFile.replace(orgExt, rgbExt)
-        gdal.Translate(rgbFile, raster, rgbExpand='RGBA')
+        gdal.Translate(rgbFile, raster, rgbExpand='RGB')
         raster = gdal.Open(rgbFile)
         gdal.Warp(tmpFile, raster, resampleAlg=GRIORA_Cubic, width=width,
           srcNodata='0', dstSRS='EPSG:4326', dstAlpha=True)
