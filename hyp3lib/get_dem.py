@@ -30,25 +30,26 @@ def positive_int(value):
         raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
     return ivalue
 
+
 def transform_bounds(inb, inepsg, outepsg):
     ptx = inb[0]
     pty = inb[1]
-    ret1 = transform_point(ptx,pty,inepsg,outepsg)
+    ret1 = transform_point(ptx, pty, inepsg, outepsg)
     ptx = inb[2]
     pty = inb[3]
-    ret2 = transform_point(ptx,pty,inepsg,outepsg) 
-    return([ret1[0],ret1[1],ret2[0],ret2[1]])
+    ret2 = transform_point(ptx, pty, inepsg, outepsg)
+    return ([ret1[0], ret1[1], ret2[0], ret2[1]])
 
 
-def transform_point(ptx,pty,inepsg,outepsg):
+def transform_point(ptx, pty, inepsg, outepsg):
     inProj = Proj(init='epsg:{}'.format(inepsg))
     outProj = Proj(init='epsg:{}'.format(outepsg))
-    x1,y1 = ptx,pty
-    x2,y2 = transform(inProj,outProj,x1,y1)
-    return([x2,y2])
+    x1, y1 = ptx, pty
+    x2, y2 = transform(inProj, outProj, x1, y1)
+    return ([x2, y2])
+
 
 def reproject_wkt(wkt, in_epsg, out_epsg):
-
     source = osr.SpatialReference()
     source.ImportFromEPSG(in_epsg)
 
@@ -60,32 +61,32 @@ def reproject_wkt(wkt, in_epsg, out_epsg):
     geom = ogr.CreateGeometryFromWkt(wkt)
     geom.Transform(transform)
 
-    return(geom.ExportToWkt())
+    return (geom.ExportToWkt())
 
 
-def get_best_dem(y_min,y_max,x_min,x_max,demName=None):
-
+def get_best_dem(y_min, y_max, x_min, x_max, demName=None):
     driver = ogr.GetDriverByName('ESRI Shapefile')
     shpdir = os.path.abspath(os.path.join(os.path.dirname(hyp3lib.etc.__file__), "config"))
 
     # Read in the DEM list
     dem_list = []
-    myfile = os.path.join(shpdir,"get_dem.py.cfg")
+    myfile = os.path.join(shpdir, "get_dem.py.cfg")
     with open(myfile) as f:
         content = f.readlines()
         for item in content:
-            dem_list.append([item.split()[0],item.split()[2]]) 
+            dem_list.append([item.split()[0], item.split()[2]])
     logging.info("dem_list {}".format(dem_list))
 
     # If a dem is specified, use it instead of the list
     if demName:
         new_dem_list = []
         for item in dem_list:
-            if demName in item[0] and len(demName)==len(item[0]):
-                new_dem_list.append([demName,item[1]])
+            if demName in item[0] and len(demName) == len(item[0]):
+                new_dem_list.append([demName, item[1]])
         dem_list = new_dem_list
 
-    scene_wkt = "POLYGON ((%s %s, %s %s, %s %s, %s %s, %s %s))" % (x_min,y_min,x_max,y_min,x_max,y_max,x_min,y_max,x_min,y_min)
+    scene_wkt = "POLYGON ((%s %s, %s %s, %s %s, %s %s, %s %s))" % (
+    x_min, y_min, x_max, y_min, x_max, y_max, x_min, y_max, x_min, y_min)
 
     best_pct = 0
     best_name = ""
@@ -98,11 +99,11 @@ def get_best_dem(y_min,y_max,x_min,x_max,demName=None):
         demEPSG = int(item[1])
         if demEPSG != 4326:
             logging.info("Reprojecting corners into projection {}".format(demEPSG))
-            proj_wkt = reproject_wkt(scene_wkt,4326,int(demEPSG))
+            proj_wkt = reproject_wkt(scene_wkt, 4326, int(demEPSG))
         else:
-            proj_wkt = scene_wkt 
+            proj_wkt = scene_wkt
 
-        dataset = driver.Open(os.path.join(shpdir,DEM+'_coverage.shp'), 0)
+        dataset = driver.Open(os.path.join(shpdir, DEM + '_coverage.shp'), 0)
         poly = ogr.CreateGeometryFromWkt(proj_wkt)
         total_area = poly.GetArea()
         coverage = 0
@@ -126,8 +127,8 @@ def get_best_dem(y_min,y_max,x_min,x_max,demName=None):
                 tile_list.append(tile)
 
         logging.info("Totals: {} {} {} {}".format(DEM, coverage, total_area,
-          coverage/total_area))
-        pct = coverage/total_area
+                                                  coverage / total_area))
+        pct = coverage / total_area
         if pct >= .99:
             best_pct = pct
             best_name = DEM.upper()
@@ -135,7 +136,7 @@ def get_best_dem(y_min,y_max,x_min,x_max,demName=None):
             best_epsg = demEPSG
             best_poly_list = poly_list
             break
-        if best_pct == 0 or pct > best_pct+0.05:
+        if best_pct == 0 or pct > best_pct + 0.05:
             best_pct = pct
             best_name = DEM.upper()
             best_tile_list = tile_list
@@ -147,28 +148,28 @@ def get_best_dem(y_min,y_max,x_min,x_max,demName=None):
 
     logging.info("Best DEM: {}".format(best_name))
     logging.info("Tile List: {}".format(best_tile_list))
-    return(best_name, best_epsg, best_tile_list, best_poly_list)
+    return (best_name, best_epsg, best_tile_list, best_poly_list)
 
 
 def get_tile_for(args):
     demname, fi = args
     cfgdir = os.path.abspath(os.path.join(os.path.dirname(hyp3lib.etc.__file__), "config"))
-    myfile = os.path.join(cfgdir,"get_dem.py.cfg")
+    myfile = os.path.join(cfgdir, "get_dem.py.cfg")
 
     with open(myfile) as f:
         content = f.readlines()
         for item in content:
             if demname in item.split()[0] and len(demname) == len(item.split()[0]):
-                (mydir,myfile) = os.path.split(item)
+                (mydir, myfile) = os.path.split(item)
                 mydir = mydir.split()[1]
                 if "s3" in mydir:
-                    myfile = os.path.join(demname,fi)+".tif"
+                    myfile = os.path.join(demname, fi) + ".tif"
                     s3 = boto3.resource('s3')
                     s3.meta.client.meta.events.register('choose-signer.s3.*', disable_signing)
                     mybucket = mydir.split("/")[-1]
-                    s3.Bucket(mybucket).download_file(myfile,"DEM/{}.tif".format(fi))
+                    s3.Bucket(mybucket).download_file(myfile, "DEM/{}.tif".format(fi))
                 else:
-                    myfile = os.path.join(mydir,demname,"geotiff",fi) + ".tif"
+                    myfile = os.path.join(mydir, demname, "geotiff", fi) + ".tif"
                     output = "DEM/%s" % fi + ".tif"
                     shutil.copy(myfile, output)
 
@@ -178,40 +179,38 @@ def parseString(string):
     m = l[1].split(",")
     n = m[0]
     o = m[1].split(")")[0]
-    return(float(n),float(o))
+    return (float(n), float(o))
 
 
-def get_cc(tmpproj,post,pixsize):
-
+def get_cc(tmpproj, post, pixsize):
     shift = 0
     string = subprocess.check_output('gdalinfo %s' % tmpproj, shell=True, universal_newlines=True)
     lst = string.split("\n")
     for item in lst:
         if "Upper Left" in item:
-            (east1,north1) = parseString(item)
+            (east1, north1) = parseString(item)
         if "Lower Left" in item:
-            (east2,north2) = parseString(item)
+            (east2, north2) = parseString(item)
         if "Upper Right" in item:
-            (east3,north3) = parseString(item)
+            (east3, north3) = parseString(item)
         if "Lower Right" in item:
-            (east4,north4) = parseString(item)
+            (east4, north4) = parseString(item)
 
-    e_min = min(east1,east2,east3,east4)
-    e_max = max(east1,east2,east3,east4)
-    n_min = min(north1,north2,north3,north4)
-    n_max = max(north1,north2,north3,north4)
+    e_min = min(east1, east2, east3, east4)
+    e_max = max(east1, east2, east3, east4)
+    n_min = min(north1, north2, north3, north4)
+    n_max = max(north1, north2, north3, north4)
 
-    e_max = math.ceil(e_max/post)*post+shift
-    e_min = math.floor(e_min/post)*post-shift
-    n_max = math.ceil(n_max/post)*post+shift
-    n_min = math.floor(n_min/post)*post-shift
+    e_max = math.ceil(e_max / post) * post + shift
+    e_min = math.floor(e_min / post) * post - shift
+    n_max = math.ceil(n_max / post) * post + shift
+    n_min = math.floor(n_min / post) * post - shift
 
-    logging.info("New coordinates: %f %f %f %f" % (e_max,e_min,n_max,n_min))
-    return(e_min,e_max,n_min,n_max)
+    logging.info("New coordinates: %f %f %f %f" % (e_max, e_min, n_max, n_min))
+    return (e_min, e_max, n_min, n_max)
 
 
 def writeVRT(dem_proj, nodata, tile_list, poly_list, outFile):
-
     # Get dimensions and pixel size from first DEM in tile ListCommand
     demFile = os.path.join('DEM', '{0}.tif'.format(tile_list[0]))
     (spatialRef, gt, shape, pixel) = raster_meta(demFile)
@@ -230,8 +229,8 @@ def writeVRT(dem_proj, nodata, tile_list, poly_list, outFile):
         if envelope[1] > maxLon: maxLon = envelope[1]
         if envelope[2] < minLat: minLat = envelope[2]
         if envelope[3] > maxLat: maxLat = envelope[3]
-    rasterXSize = np.int(np.rint((maxLon-minLon)/pixSize)) + 1
-    rasterYSize = np.int(np.rint((maxLat-minLat)/pixSize)) + 1
+    rasterXSize = np.int(np.rint((maxLon - minLon) / pixSize)) + 1
+    rasterYSize = np.int(np.rint((maxLat - minLat) / pixSize)) + 1
 
     # Determine offsets
     offsetX = []
@@ -239,17 +238,17 @@ def writeVRT(dem_proj, nodata, tile_list, poly_list, outFile):
     for poly in poly_list:
         polygon = ogr.CreateGeometryFromWkt(poly)
         envelope = polygon.GetEnvelope()
-        offsetX.append(np.int(np.rint((envelope[0] - minLon)/pixSize)))
-        offsetY.append(np.int(np.rint((maxLat - envelope[3])/pixSize)))
+        offsetX.append(np.int(np.rint((envelope[0] - minLon) / pixSize)))
+        offsetY.append(np.int(np.rint((maxLat - envelope[3]) / pixSize)))
 
     # Generate XML structure
     vrt = et.Element('VRTDataset', rasterXSize=str(rasterXSize),
-        rasterYSize=str(rasterYSize))
+                     rasterYSize=str(rasterYSize))
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(dem_proj)
     et.SubElement(vrt, 'SRS').text = srs.ExportToWkt()
     geoTrans = ('%.16f, %.16f, 0.0, %.16f, 0.0, %.16f' % (minLon, pixSize, maxLat,
-        -pixSize))
+                                                          -pixSize))
     et.SubElement(vrt, 'GeoTransform').text = geoTrans
     bands = et.SubElement(vrt, 'VRTRasterBand', dataType='Float32', band='1')
     et.SubElement(bands, 'NoDataValue').text = '-32768'
@@ -282,34 +281,36 @@ def writeVRT(dem_proj, nodata, tile_list, poly_list, outFile):
     # Write VRT file
     with open(outFile, 'wb') as outF:
         outF.write(et.tostring(vrt, xml_declaration=False, encoding='utf-8',
-            pretty_print=True))
+                               pretty_print=True))
 
 
-def get_ISCE_dem(west,south,east,north,demName,demXMLName):
+def get_ISCE_dem(west, south, east, north, demName, demXMLName):
     """GET DEM file and convert into ISCE format"""
     # Get the DEM file
-    chosen_dem = get_dem(west,south,east,north,"temp_dem.tif")
+    chosen_dem = get_dem(west, south, east, north, "temp_dem.tif")
 
     # Reproject DEM into Lat, Lon space
     pixsize = 0.000277777777778
-    gdal.Warp(demName,"temp_dem.tif",format="ENVI",dstSRS="EPSG:4326",xRes=pixsize,yRes=pixsize,resampleAlg="cubic",dstNodata=-32767)
+    gdal.Warp(demName, "temp_dem.tif", format="ENVI", dstSRS="EPSG:4326", xRes=pixsize, yRes=pixsize,
+              resampleAlg="cubic", dstNodata=-32767)
     ext = os.path.splitext(demName)[1]
-    hdrName = demName.replace(ext,".hdr")
-    dem2isce.dem2isce(demName,hdrName,demXMLName)
+    hdrName = demName.replace(ext, ".hdr")
+    dem2isce.dem2isce(demName, hdrName, demXMLName)
     return chosen_dem
 
 
-def get_ll_dem(west,south,east,north,outDem,post=None,processes=1,demName=None,leave=False):
+def get_ll_dem(west, south, east, north, outDem, post=None, processes=1, demName=None, leave=False):
     """GET DEM file and convert into lat,lon format"""
-    demType = get_dem(west,south,east,north,"temp_dem.tif",post=post,processes=processes,demName=demName,leave=leave)
+    demType = get_dem(west, south, east, north, "temp_dem.tif", post=post, processes=processes, demName=demName,
+                      leave=leave)
     pixsize = 0.000277777777778
-    gdal.Warp(outDem,"temp_dem.tif",dstSRS="EPSG:4326",xRes=pixsize,yRes=pixsize,resampleAlg="cubic",dstNodata=-32767)
+    gdal.Warp(outDem, "temp_dem.tif", dstSRS="EPSG:4326", xRes=pixsize, yRes=pixsize, resampleAlg="cubic",
+              dstNodata=-32767)
     os.remove("temp_dem.tif")
-    return(demType)
+    return (demType)
 
 
-def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,leave=False):
-
+def get_dem(x_min, y_min, x_max, y_max, outfile, post=None, processes=1, demName=None, leave=False):
     if post is not None:
         logging.info("Snapping to grid at posting of %s meters" % post)
 
@@ -325,7 +326,7 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
         (y_min, y_max) = (y_max, y_min)
 
     # Figure out which DEM and get the tile list
-    (demname, demproj, tile_list, poly_list) = get_best_dem(y_min,y_max,x_min,x_max,demName=demName)
+    (demname, demproj, tile_list, poly_list) = get_best_dem(y_min, y_max, x_min, x_max, demName=demName)
     demproj = int(demproj)
     logging.info("demproj is {}".format(demproj))
 
@@ -351,7 +352,7 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
     p.close()
     p.join()
 
-    #os.system("gdalbuildvrt temp.vrt DEM/*.tif")
+    # os.system("gdalbuildvrt temp.vrt DEM/*.tif")
     if "SRTMGL" in demname:
         nodata = -32768
     elif "GIMP" in demname:
@@ -364,28 +365,28 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
         raise DemError(f'Unable to determine NoData value for DEM {demname}')
 
     writeVRT(demproj, nodata, tile_list, poly_list, 'temp.vrt')
- 
+
     #
     # Set the output projection to either NPS, SPS, or UTM
     #
-    if demproj == 3413: 	# North Polar Stereo
+    if demproj == 3413:  # North Polar Stereo
         outproj = ('EPSG:3413')
         outproj_num = 3413
-    elif demproj == 3031:        # South Polar Stereo
+    elif demproj == 3031:  # South Polar Stereo
         outproj = ('EPSG:3031')
         outproj_num = 3031
     else:
-        lon = (x_max+x_min)/2
-        zone = math.floor((lon+180)/6+1)
+        lon = (x_max + x_min) / 2
+        zone = math.floor((lon + 180) / 6 + 1)
         if zone > 60:
             zone -= 60
-        if (y_min+y_max)/2 > 0:
+        if (y_min + y_max) / 2 > 0:
             outproj = ('EPSG:326%02d' % int(zone))
-            outproj_num = int("326%02d"%int(zone))
+            outproj_num = int("326%02d" % int(zone))
         else:
             outproj = ('EPSG:327%02d' % int(zone))
-            outproj_num = int("327%02d"%int(zone))
-     
+            outproj_num = int("327%02d" % int(zone))
+
     tmpdem = "xxyyzz_img.tif"
     tmpdem2 = "aabbcc_img.tif"
     tmpproj = "lmnopqr_img.tif"
@@ -406,7 +407,7 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
         pixsize = 60.
         gcssize = gcssize * 2
 
-    bounds = [x_min,y_min,x_max,y_max]
+    bounds = [x_min, y_min, x_max, y_max]
 
     logging.info("Creating initial raster file")
     logging.info("    tmpdem {t}".format(t=tmpdem))
@@ -415,7 +416,7 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
 
     # xform bounds to projection of the DEM
     if demproj != 4326:
-        bounds = transform_bounds(bounds,4326,demproj)
+        bounds = transform_bounds(bounds, 4326, demproj)
         logging.info("    transformed bounds {b}".format(b=bounds))
         if bounds[0] > bounds[2]:
             (bounds[0], bounds[2]) = (bounds[2], bounds[0])
@@ -423,16 +424,18 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
             (bounds[1], bounds[3]) = (bounds[3], bounds[1])
 
     if demproj == 4269 or demproj == 4326:
-        gdal.Warp(tmpdem,"temp.vrt",xRes=gcssize,yRes=gcssize,outputBounds=bounds,resampleAlg="cubic",dstNodata=-32767)
+        gdal.Warp(tmpdem, "temp.vrt", xRes=gcssize, yRes=gcssize, outputBounds=bounds, resampleAlg="cubic",
+                  dstNodata=-32767)
     else:
-        gdal.Warp(tmpdem,"temp.vrt",xRes=pixsize,yRes=pixsize,outputBounds=bounds,resampleAlg="cubic",dstNodata=-32767)
+        gdal.Warp(tmpdem, "temp.vrt", xRes=pixsize, yRes=pixsize, outputBounds=bounds, resampleAlg="cubic",
+                  dstNodata=-32767)
 
     # If DEM is from NED collection, then it will have a NAD83 ellipse -
     # need to convert to WGS84
     # Also, need to convert from pixel as area to pixel as point
     if "NED" in demname:
         logging.info("Converting to WGS84")
-        gdal.Warp("temp_dem_wgs84.tif",tmpdem, dstSRS="EPSG:4326")
+        gdal.Warp("temp_dem_wgs84.tif", tmpdem, dstSRS="EPSG:4326")
         logging.info("Converting to pixel as point")
         x1, y1, t1, p1, data = \
             saa.read_gdal_file(saa.open_gdal_file("temp_dem_wgs84.tif"))
@@ -442,23 +445,23 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
         lat = t1[3]
         roty = t1[4]
         resy = t1[5]
-        lon = lon + resx/2.0
-        lat = lat + resy/2.0
+        lon = lon + resx / 2.0
+        lat = lat + resy / 2.0
         t1 = [lon, resx, rotx, lat, roty, resy]
-        saa.write_gdal_file_float(tmpdem,t1,p1,data)
+        saa.write_gdal_file_float(tmpdem, t1, p1, data)
         if not leave:
             os.remove("temp_dem_wgs84.tif")
 
-    clean_dem(tmpdem,tmpdem2)
-    shutil.move(tmpdem2,tmpdem)
-    gdal.Translate(tmpdem2,tmpdem,metadataOptions = ['AREA_OR_POINT=Point'])
-    shutil.move(tmpdem2,tmpdem)
+    clean_dem(tmpdem, tmpdem2)
+    shutil.move(tmpdem2, tmpdem)
+    gdal.Translate(tmpdem2, tmpdem, metadataOptions=['AREA_OR_POINT=Point'])
+    shutil.move(tmpdem2, tmpdem)
 
     # Reproject the DEM file into UTM space
     if demproj != outproj_num:
         logging.info("Translating raster file to projected coordinates ({p})".format(p=outproj))
-        gdal.Warp(tmpproj,tmpdem,dstSRS=outproj,xRes=pixsize,yRes=pixsize,resampleAlg="cubic",
-                  srcNodata=-32767,dstNodata=-32767)
+        gdal.Warp(tmpproj, tmpdem, dstSRS=outproj, xRes=pixsize, yRes=pixsize, resampleAlg="cubic",
+                  srcNodata=-32767, dstNodata=-32767)
         infile = tmpproj
     else:
         infile = tmpdem
@@ -466,10 +469,10 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
     report_min(infile)
 
     # Snap to posting grid
-    if  post:
-        snap_to_grid(post,pixsize,infile,outfile)
+    if post:
+        snap_to_grid(post, pixsize, infile, outfile)
     else:
-        shutil.copy(infile,outfile)
+        shutil.copy(infile, outfile)
 
     report_min(outfile)
 
@@ -483,39 +486,40 @@ def get_dem(x_min,y_min,x_max,y_max,outfile,post=None,processes=1,demName=None,l
             os.remove(tmpproj)
 
     logging.info("Successful Completion!")
-    return(demname)
+    return (demname)
+
 
 def report_min(inDem):
-    (x,y,trans,proj,data) = saa.read_gdal_file(saa.open_gdal_file(inDem))
-    logging.debug("DEM file {} minimum is {}".format(inDem,np.min(data)))
+    (x, y, trans, proj, data) = saa.read_gdal_file(saa.open_gdal_file(inDem))
+    logging.debug("DEM file {} minimum is {}".format(inDem, np.min(data)))
 
 
-
-def clean_dem(inDem,outDem):
-    (x,y,trans,proj,data) = saa.read_gdal_file(saa.open_gdal_file(inDem))
+def clean_dem(inDem, outDem):
+    (x, y, trans, proj, data) = saa.read_gdal_file(saa.open_gdal_file(inDem))
     logging.info("Replacing values less than -1000 with zero")
-    data[data<=-1000] = -32767
+    data[data <= -1000] = -32767
     logging.info("DEM Maximum value: {}".format(np.max(data)))
     logging.info("DEM minimum value: {}".format(np.min(data)))
 
     if data.dtype == np.float32:
-        saa.write_gdal_file_float(outDem,trans,proj,data.astype(np.float32))
+        saa.write_gdal_file_float(outDem, trans, proj, data.astype(np.float32))
     elif data.dtype == np.uint16:
-        saa.write_gdal_file(outDem,trans,proj,data)
+        saa.write_gdal_file(outDem, trans, proj, data)
     else:
         logging.error("ERROR: Unknown DEM data type {}".format(data.dtype))
         exit(1)
 
+
 def snap_to_grid(post, pixsize, infile, outfile):
     if post:
         logging.info("Snapping file to grid at %s meters" % post)
-        (e_min,e_max,n_min,n_max) = get_cc(infile,post,pixsize)
-        bounds = [e_min,n_min,e_max,n_max]
-        gdal.Warp(outfile,infile,xRes=pixsize,yRes=pixsize,outputBounds=bounds,resampleAlg="cubic",dstNodata=-32767)
+        (e_min, e_max, n_min, n_max) = get_cc(infile, post, pixsize)
+        bounds = [e_min, n_min, e_max, n_max]
+        gdal.Warp(outfile, infile, xRes=pixsize, yRes=pixsize, outputBounds=bounds, resampleAlg="cubic",
+                  dstNodata=-32767)
     else:
         logging.info("Copying DEM to output file name")
-        shutil.copy(infile,outfile)
-
+        shutil.copy(infile, outfile)
 
 
 def main():
